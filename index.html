@@ -4,9 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="jogo-asteroids_style.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Smooch+Sans:wght@100..900&display=swap" rel="stylesheet">
     <title>Jogo - Asteroids</title>
 </head>
 <body>
+    <div id="startScreen">
+        <h1>Bem-vindo ao Asteroids!</h1>
+        <p>Pressione o botão para começar o jogo</p>
+        <button id="startButton">Iniciar Jogo</button>
+    </div>
+    <div id="gameOverScreen" style="display: none;">
+        <h1>Game Over</h1>
+        <p id="finalScore"></p>
+        <button id="restartButton">Reiniciar Jogo</button>
+    </div>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     
     <script src="jogo-asteroids_script.js"></script>

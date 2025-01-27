@@ -2,6 +2,12 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+const startScreen = document.getElementById("startScreen");
+const gameOverScreen = document.getElementById("gameOverScreen");
+const startButton = document.getElementById("startButton");
+const restartButton = document.getElementById("restartButton");
+const finalScore = document.getElementById("finalScore");
+
 const spaceship = {
     x: canvas.width / 2,
     y: canvas.height / 2,
@@ -11,13 +17,13 @@ const spaceship = {
     height: 30
 };
 
-const bullets = [];
-const asteroids = [];
-
+let bullets = [];
+let asteroids = [];
 let lastTime = 0;
 let gameOver = false;
+let score = 0;
 
-// Função para desenhar a nave
+// Funções de desenho e lógica do jogo
 function drawSpaceship() {
     ctx.save();
     ctx.translate(spaceship.x, spaceship.y);
@@ -33,7 +39,6 @@ function drawSpaceship() {
     ctx.restore();
 }
 
-// Função para desenhar asteroides
 function drawAsteroids() {
     for (let i = 0; i < asteroids.length; i++) {
         const asteroid = asteroids[i];
@@ -44,7 +49,6 @@ function drawAsteroids() {
     }
 }
 
-// Função para desenhar os tiros
 function drawBullets() {
     for (let i = 0; i < bullets.length; i++) {
         const bullet = bullets[i];
@@ -55,19 +59,22 @@ function drawBullets() {
     }
 }
 
-// Função para movimentação da nave
+function drawScore() {
+    ctx.fillStyle = "white";
+    ctx.font = "20px Arial";
+    ctx.fillText(`Score: ${score}`, 10, 30);
+}
+
 function moveSpaceship() {
     spaceship.x += Math.cos(spaceship.angle) * spaceship.speed;
     spaceship.y += Math.sin(spaceship.angle) * spaceship.speed;
     
-    // Condições de borda
     if (spaceship.x < 0) spaceship.x = canvas.width;
     if (spaceship.x > canvas.width) spaceship.x = 0;
     if (spaceship.y < 0) spaceship.y = canvas.height;
     if (spaceship.y > canvas.height) spaceship.y = 0;
 }
 
-// Função para movimentação dos asteroides
 function moveAsteroids() {
     for (let i = 0; i < asteroids.length; i++) {
         const asteroid = asteroids[i];
@@ -81,14 +88,12 @@ function moveAsteroids() {
     }
 }
 
-// Função para movimentação dos tiros
 function moveBullets() {
     for (let i = 0; i < bullets.length; i++) {
         const bullet = bullets[i];
         bullet.x += Math.cos(bullet.angle) * 5;
         bullet.y += Math.sin(bullet.angle) * 5;
         
-        // Remover tiros fora da tela
         if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
             bullets.splice(i, 1);
             i--;
@@ -96,7 +101,6 @@ function moveBullets() {
     }
 }
 
-// Função para detectar colisões entre tiros e asteroides
 function detectCollisions() {
     for (let i = 0; i < bullets.length; i++) {
         const bullet = bullets[i];
@@ -106,16 +110,16 @@ function detectCollisions() {
             const dy = bullet.y - asteroid.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             if (distance < asteroid.radius) {
-                asteroids.splice(j, 1); // Remove o asteroide
-                bullets.splice(i, 1);   // Remove o tiro
+                asteroids.splice(j, 1);
+                bullets.splice(i, 1);
                 i--;
+                score += 10;
                 break;
             }
         }
     }
 }
 
-// Função para detectar colisões entre a nave e asteroides
 function detectShipAsteroidCollisions() {
     for (let i = 0; i < asteroids.length; i++) {
         const asteroid = asteroids[i];
@@ -124,13 +128,14 @@ function detectShipAsteroidCollisions() {
         const distance = Math.sqrt(dx * dx + dy * dy);
         if (distance < spaceship.width / 2 + asteroid.radius) {
             gameOver = true;
-            alert("Game Over!");
+            finalScore.textContent = `Sua pontuação final foi: ${score}`;
+            gameOverScreen.style.display = "flex";
+            canvas.style.display = "none";
             break;
         }
     }
 }
 
-// Função para gerar asteroides
 function generateAsteroids() {
     if (Math.random() < 0.02) {
         const radius = Math.random() * 20 + 15;
@@ -143,11 +148,10 @@ function generateAsteroids() {
     }
 }
 
-// Função para atualizar o jogo
 function update(time) {
     const deltaTime = time - lastTime;
     lastTime = time;
-    
+
     if (gameOver) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -162,36 +166,39 @@ function update(time) {
     drawSpaceship();
     drawAsteroids();
     drawBullets();
+    drawScore();
     
     requestAnimationFrame(update);
 }
 
-// Função para iniciar o jogo
 function startGame() {
+    score = 0;
+    bullets = [];
+    asteroids = [];
+    gameOver = false;
+    spaceship.x = canvas.width / 2;
+    spaceship.y = canvas.height / 2;
+    startScreen.style.display = "none";
+    gameOverScreen.style.display = "none";
+    canvas.style.display = "block";
     requestAnimationFrame(update);
 }
 
-// Funções de controle de nave com o mouse
+// Eventos para iniciar/reiniciar o jogo
+startButton.addEventListener("click", startGame);
+restartButton.addEventListener("click", startGame);
+
+// Controle de nave com o mouse
 canvas.addEventListener("mousemove", (e) => {
-    const mouseX = e.clientX;
-    const mouseY = e.clientY;
-    
-    // Calcular o ângulo entre a nave e o cursor
+    const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+    const mouseY = e.clientY - canvas.getBoundingClientRect().top;
     const dx = mouseX - spaceship.x;
     const dy = mouseY - spaceship.y;
     spaceship.angle = Math.atan2(dy, dx);
 });
 
-// Função de disparo automático
 setInterval(() => {
     if (!gameOver) {
-        bullets.push({
-            x: spaceship.x,
-            y: spaceship.y,
-            angle: spaceship.angle
-        });
+        bullets.push({ x: spaceship.x, y: spaceship.y, angle: spaceship.angle });
     }
-}, 100); // Disparo a cada 100ms
-
-// Iniciar o jogo
-startGame();
+}, 100);
